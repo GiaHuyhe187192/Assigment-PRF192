@@ -6,39 +6,41 @@
 #define MAXN 100
 #define MAXL 50
 
-void saveToFile(char wine[][MAXL], int quantity[], int n);
-void loadFromFile(char wine[][MAXL], int quantity[], int *n);
-void updateFile(char wine[][MAXL], int quantity[], int n);
+// Khai bao cac ham
+void saveToFile(char wine[][MAXL], int quantity[], int n); // Luu du lieu vao tep
+void loadFromFile(char wine[][MAXL], int quantity[], int *n); // Tai du lieu tu tep
+void updateFile(char wine[][MAXL], int quantity[], int n); // Cap nhat du lieu vao tep
 
-void addWine(char wines[], char wine[][MAXL], int quantity[], int quantities, int *pn);
-void removeWine(char wine[][MAXL], int quantity[], int pos, int *pn, int *total);
-int search(char wines[], char wine[][MAXL], int n);
+void addWine(char wines[], char wine[][MAXL], int quantity[], int quantities, int *pn); // Them loai ruou moi vao danh sach
+void removeWine(char wine[][MAXL], int quantity[], int pos, int *pn, int *total); // Xoa loai ruou khoi danh sach
+int search(char wines[], char wine[][MAXL], int n); // Tim kiem loai ruou trong danh sach
 
-void printList(char wine[][MAXL], int quantity[], int n, int total);
-int getUserChoice();
-int getUpChoice();
-int checkNumb();
-int checkChar(char s[]);
-char* lTrim(char s[]);
-char* rTrim(char s[]);
-char* trim(char s[]);
-char* nameStr (char s[]);
+void printList(char wine[][MAXL], int quantity[], int n, int total); // In ra danh sach loai ruou
+int getUserChoice(); // Lay lua chon tu nguoi dung
+int getUpChoice(); // Lay lua chon cho viec cap nhat tu nguoi dung
+int checkNumb(); // Kiem tra xem dau vao co phai la so khong
+int checkChar(char s[]); // Kiem tra xem chuoi co chua ky tu khong phai chu cai khong
+char* lTrim(char s[]); // Loai bo cac khoang trang tu phia trai cua chuoi
+char* rTrim(char s[]); // Loai bo cac khoang trang tu phia phai cua chuoi
+char* trim(char s[]); // Loai bo cac khoang trang tu ca hai dau cua chuoi
+char* nameStr (char s[]); // Dinh dang lai ten loai ruou
 
 int main() {
-    char wine[MAXN][MAXL];
-    int quantity[MAXN];
-    int n = 0;
-    int total = 0;
+    char wine[MAXN][MAXL]; // Mang luu tru ten loai ruou
+    int quantity[MAXN]; // Mang luu tru so luong loai ruou
+    int n = 0; // So luong loai ruou hien tai
+    int total = 0; // Tong so luong loai ruou trong kho
 
-   
+    // Tai du lieu tu tep neu co
     loadFromFile(wine, quantity, &n);
 
     int userChoice, outMenu = 0;
     do {
+        // Hien thi menu va lay lua chon cua nguoi dung
         userChoice = getUserChoice();
         switch(userChoice) {
             case 1:
-               
+                // Them thong tin loai ruou moi
                 {
                     int checkCh;
                     char wines[MAXL];
@@ -71,14 +73,14 @@ int main() {
                 }
                 break;
             case 2:
-                
+                // In ra danh sach loai ruou
                 if (n == 0)
                     printf("\nKe ruou dang trong!\n");
                 else
                     printList(wine, quantity, n, total);
                 break;
             case 3:
-                
+                // Tim kiem loai ruou
                 if (n == 0)
                     printf("\nKe ruou dang trong!\n");
                 else {
@@ -96,7 +98,7 @@ int main() {
                 }
                 break;
             case 4:
-               
+                // Cap nhat thong tin loai ruou
                 if (n == 0)
                     printf("\nKe ruou dang trong!\n");
                 else {
@@ -117,6 +119,7 @@ int main() {
                             updateChoice = getUpChoice();
                             switch (updateChoice) {
                                 case 1:
+                                    // Cap nhat ten loai ruou
                                     {
                                         int checkCh;
                                         char winess[MAXL];
@@ -134,6 +137,7 @@ int main() {
                                         break;
                                     }
                                 case 2:
+                                    // Cap nhat so luong loai ruou
                                     {
                                         int cache = quantity[pos];
                                         total -= quantity[pos];
@@ -167,7 +171,7 @@ int main() {
                 }
                 break;
             case 5:
-                
+                // Xoa loai ruou
                 if (n == 0)
                     printf("\nKe ruou dang trong!\n");
                 else {
@@ -192,7 +196,7 @@ int main() {
         }
     } while (!outMenu);
 
-    
+    // Luu du lieu vao tep truoc khi thoat chuong trinh
     saveToFile(wine, quantity, n);
     printf("\nTam biet! Hen gap lai!\n");
     return 0;

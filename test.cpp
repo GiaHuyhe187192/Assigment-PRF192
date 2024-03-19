@@ -1,373 +1,152 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <ctype.h> 
 
-#define MAXN 100
-#define MAXL 50
+#define MAX_NAME_LENGTH 50
+#define MAX_TYPE_LENGTH 20
+#define FILE_NAME "wines.txt"
 
-// Khai bao cac ham
-void saveToFile(char wine[][MAXL], int quantity[], int n); // Luu du lieu vao tep
-void loadFromFile(char wine[][MAXL], int quantity[], int *n); // Tai du lieu tu tep
-void updateFile(char wine[][MAXL], int quantity[], int n); // Cap nhat du lieu vao tep
+// Ð?nh nghia c?u trúc d? li?u cho m?i lo?i ru?u
+struct Wine {
+    char name[MAX_NAME_LENGTH];
+    char type[MAX_TYPE_LENGTH];
+    int year;
+    float price;
+};
 
-void addWine(char wines[], char wine[][MAXL], int quantity[], int quantities, int *pn); // Them loai ruou moi vao danh sach
-void removeWine(char wine[][MAXL], int quantity[], int pos, int *pn, int *total); // Xoa loai ruou khoi danh sach
-int search(char wines[], char wine[][MAXL], int n); // Tim kiem loai ruou trong danh sach
-
-void printList(char wine[][MAXL], int quantity[], int n, int total); // In ra danh sach loai ruou
-int getUserChoice(); // Lay lua chon tu nguoi dung
-int getUpChoice(); // Lay lua chon cho viec cap nhat tu nguoi dung
-int checkNumb(); // Kiem tra xem dau vao co phai la so khong
-int checkChar(char s[]); // Kiem tra xem chuoi co chua ky tu khong phai chu cai khong
-char* lTrim(char s[]); // Loai bo cac khoang trang tu phia trai cua chuoi
-char* rTrim(char s[]); // Loai bo cac khoang trang tu phia phai cua chuoi
-char* trim(char s[]); // Loai bo cac khoang trang tu ca hai dau cua chuoi
-char* nameStr (char s[]); // Dinh dang lai ten loai ruou
-
-int main() {
-    char wine[MAXN][MAXL]; // Mang luu tru ten loai ruou
-    int quantity[MAXN]; // Mang luu tru so luong loai ruou
-    int n = 0; // So luong loai ruou hien tai
-    int total = 0; // Tong so luong loai ruou trong kho
-
-    // Tai du lieu tu tep neu co
-    loadFromFile(wine, quantity, &n);
-
-    int userChoice, outMenu = 0;
-    do {
-        // Hien thi menu va lay lua chon cua nguoi dung
-        userChoice = getUserChoice();
-        switch(userChoice) {
-            case 1:
-                // Them thong tin loai ruou moi
-                {
-                    int checkCh;
-                    char wines[MAXL];
-                    int quantities;
-                    printf("\nNhap thong tin ve loai ruou:\n");
-                    printf("Ten loai ruou: ");
-                    do {
-                        scanf("%[^\n]", wines);
-                        fflush(stdin);
-                        checkCh = checkChar(wines);
-                        if (checkCh == 0)
-                            printf("Loi! Khong co ky tu de nhan dang! Nhap ten loai ruou lai: ");
-                    } while (checkCh == 0);
-
-                    printf("So luong cua loai ruou: ");
-                    do {
-                        quantities = checkNumb();
-                        if (quantities == 0)
-                            printf("Loi! Chi so nguyen duoc chap nhan! Nhap so luong lai: ");
-                    } while (quantities == 0);
-                    total += quantities;
-                    if (total <= MAXN) {
-                        nameStr(wines);
-                        addWine(wines, wine, quantity, quantities, &n);
-                        printf("\nDa them!!\n");
-                    } else {
-                        printf("\nThat bai! Ke ruou khong du cho de them loai ruou nay!\n");
-                        total -= quantities;
-                    }
-                }
-                break;
-            case 2:
-                // In ra danh sach loai ruou
-                if (n == 0)
-                    printf("\nKe ruou dang trong!\n");
-                else
-                    printList(wine, quantity, n, total);
-                break;
-            case 3:
-                // Tim kiem loai ruou
-                if (n == 0)
-                    printf("\nKe ruou dang trong!\n");
-                else {
-                    char wines[MAXL];
-                    int pos;
-                    printf("\nNhap ten loai ruou ban muon tim: ");
-                    scanf(" %[^\n]", wines); 
-                    fflush(stdin);
-                    nameStr(wines);
-                    pos = search(wines, wine, n);
-                    if (pos < 0)
-                        printf("\nLoai ruou nay khong ton tai!\n");
-                    else
-                        printf("\nTim thay!\nSo luong cua loai ruou %s la: %d\n", wine[pos], quantity[pos]);
-                }
-                break;
-            case 4:
-                // Cap nhat thong tin loai ruou
-                if (n == 0)
-                    printf("\nKe ruou dang trong!\n");
-                else {
-                    char wines[MAXL];
-                    int pos;
-                    printf("\nNhap ten loai ruou ban muon cap nhat: ");
-                    scanf(" %[^\n]", wines);
-                    fflush(stdin);
-                    nameStr(wines);
-                    pos = search(wines, wine, n);
-                    if (pos < 0)
-                        printf("\nLoai ruou nay khong ton tai!\n");
-                    else {
-                        printf("\nTim thay!\n");
-                        int updateChoice;
-                        int leave = 0;
-                        do {
-                            updateChoice = getUpChoice();
-                            switch (updateChoice) {
-                                case 1:
-                                    // Cap nhat ten loai ruou
-                                    {
-                                        int checkCh;
-                                        char winess[MAXL];
-                                        printf("\nNhap ten moi cho loai ruou: ");
-                                        do {
-                                            scanf(" %[^\n]", winess);
-                                            fflush(stdin);
-                                            checkCh = checkChar(winess);
-                                            if (checkCh == 0)
-                                                printf("Loi! Khong co ky tu de nhan dang! Nhap ten lai: ");
-                                        } while (checkCh == 0);
-                                        nameStr(winess);
-                                        strcpy(wine[pos], winess);
-                                        printf("\nDa cap nhat thanh cong!\n");
-                                        break;
-                                    }
-                                case 2:
-                                    // Cap nhat so luong loai ruou
-                                    {
-                                        int cache = quantity[pos];
-                                        total -= quantity[pos];
-                                        int quantitiess;
-                                        printf("\nNhap so luong moi cho loai ruou: ");
-                                        do {
-                                            quantitiess = checkNumb();
-                                            if (quantitiess == 0)
-                                                printf("Loi! Chi so nguyen duoc chap nhan! Nhap so luong lai: ");
-                                        } while (quantitiess == 0);
-                                        total += quantitiess;
-                                        if (total <= MAXN) {
-                                            quantity[pos] = quantitiess;
-                                            printf("\nDa cap nhat thanh cong!\n");
-                                        } else {
-                                            printf("\nThat bai! Ke ruou khong du cho de them loai ruou nay!\n");
-                                            total -= quantitiess;
-                                            total += cache;
-                                        }
-                                        break;
-                                    }
-                                case 3:
-                                    leave = 1;
-                                    break;
-                                default:
-                                    printf("Lua chon khong hop le! Vui long nhap lai lua chon cua ban!\n");
-                            }
-                        } while (leave == 0);
-                        printf("\nDa cap nhat!\n");
-                    }
-                }
-                break;
-            case 5:
-                // Xoa loai ruou
-                if (n == 0)
-                    printf("\nKe ruou dang trong!\n");
-                else {
-                    char wines[MAXL];
-                    int pos;
-                    printf("\nNhap ten loai ruou ban muon xoa: ");
-                    scanf(" %[^\n]", wines);
-                    fflush(stdin);
-                    nameStr(wines);
-                    pos = search(wines, wine, n);
-                    if (pos < 0)
-                        printf("\nLoai ruou nay khong ton tai!\n");
-                    else
-                        removeWine(wine, quantity, pos, &n, &total);
-                }
-                break;
-            case 6:
-                outMenu = 1; 
-                break;
-            default:
-                printf("\nLua chon khong hop le!\n");
-        }
-    } while (!outMenu);
-
-    // Luu du lieu vao tep truoc khi thoat chuong trinh
-    saveToFile(wine, quantity, n);
-    printf("\nTam biet! Hen gap lai!\n");
-    return 0;
-}
-
-void saveToFile(char wine[][MAXL], int quantity[], int n) {
-    FILE *file = fopen("wine_data.txt", "w");
+// Hàm d? thêm m?t lo?i ru?u m?i vào file
+void addWineToFile(struct Wine wine) {
+    FILE *file = fopen(FILE_NAME, "a");
     if (file == NULL) {
-        printf("Khong the mo tep tin de luu du lieu.\n");
-        exit(1);
-    }
-
-    for (int i = 0; i < n; i++) {
-        fprintf(file, "%s %d\n", wine[i], quantity[i]);
-    }
-
-    fclose(file);
-}
-
-void loadFromFile(char wine[][MAXL], int quantity[], int *n) {
-    FILE *file = fopen("wine_data.txt", "r");
-    if (file == NULL) {
-        printf("Khong the mo tep tin de doc du lieu.\n");
+        printf("Khong the mo file.\n");
         return;
     }
-
-    *n = 0;
-    while (fscanf(file, "%s %d", wine[*n], &quantity[*n]) == 2) {
-        (*n)++;
-    }
-
+    fprintf(file, "%s;%s;%d;%.2f\n", wine.name, wine.type, wine.year, wine.price);
     fclose(file);
 }
 
-void updateFile(char wine[][MAXL], int quantity[], int n) {
-    FILE *file = fopen("wine_data.txt", "w");
+// Hàm d? hi?n th? t?t c? các lo?i ru?u trong file
+void displayAllWines() {
+    FILE *file = fopen(FILE_NAME, "r");
     if (file == NULL) {
-        printf("Khong the mo tep tin de cap nhat du lieu.\n");
-        exit(1);
+        printf("Khong the mo file.\n");
+        return;
     }
-
-    for (int i = 0; i < n; i++) {
-        fprintf(file, "%s %d\n", wine[i], quantity[i]);
+    struct Wine wine;
+    printf("Danh sach cac loai ruou:\n");
+    printf("Ten\t\tLoai\tNam\tGia\n");
+    while (fscanf(file, "%[^;];%[^;];%d;%f\n", wine.name, wine.type, &wine.year, &wine.price) != EOF) {
+        printf("%s\t\t%s\t%d\t%.2f\n", wine.name, wine.type, wine.year, wine.price);
     }
-
     fclose(file);
 }
 
-void addWine(char wines[], char wine[][MAXL], int quantity[], int quantities, int *pn) {
-    strcpy(wine[*pn], wines);
-    quantity[*pn] = quantities;
-    (*pn)++;
-}
-
-void removeWine(char wine[][MAXL], int quantity[], int pos, int *pn, int *total) {
-    (*total) -= quantity[pos];
-    for (int i = pos + 1; i < (*pn); i++) {
-        strcpy(wine[i-1], wine[i]);
-        quantity[i-1] = quantity[i];
+// Hàm d? tìm ki?m và hi?n th? thông tin v? m?t lo?i ru?u c? th?
+void searchWine(char name[]) {
+    FILE *file = fopen(FILE_NAME, "r");
+    if (file == NULL) {
+        printf("Khong the mo file.\n");
+        return;
     }
-    (*pn)--;
-    printf("\nLoai ruou nay da duoc xoa khoi ke ruou thanh cong!\n");
-}
-
-int search(char wines[], char wine[][MAXL], int n) {
-    for (int i = 0; i < n; i++) {
-        if (strcmp(wines, wine[i]) == 0)
-            return i;
+    struct Wine wine;
+    int found = 0;
+    while (fscanf(file, "%[^;];%[^;];%d;%f\n", wine.name, wine.type, &wine.year, &wine.price) != EOF) {
+        if (strcmp(wine.name, name) == 0) {
+            printf("Thong tin ve ruou %s:\n", name);
+            printf("Ten: %s\n", wine.name);
+            printf("Loai: %s\n", wine.type);
+            printf("Nam: %d\n", wine.year);
+            printf("Gia: %.2f\n", wine.price);
+            found = 1;
+            break;
+        }
     }
-    return -1;
-}
-
-void printList(char wine[][MAXL], int quantity[], int n, int total) {
-    printf("\n--Tat ca loai ruou trong ke--\n");
-    for (int i = 0; i < n; i++) {
-        printf("\nTen: %s\n", wine[i]);
-        printf("So luong: %d\n", quantity[i]);
+    if (!found) {
+        printf("Khong tim thay thong tin ve ruou %s.\n", name);
     }
-    printf("\nTong so loai ruou trong ke hien tai: %d\n", total);
+    fclose(file);
 }
 
-int getUserChoice() {
+// Hàm d? xóa m?t lo?i ru?u kh?i file
+void deleteWine(char name[]) {
+    FILE *file = fopen(FILE_NAME, "r");
+    if (file == NULL) {
+        printf("Khong the mo file.\n");
+        return;
+    }
+    FILE *tempFile = fopen("temp.txt", "w");
+    if (tempFile == NULL) {
+        printf("Khong the tao file tam thoi.\n");
+        fclose(file);
+        return;
+    }
+    struct Wine wine;
+    int found = 0;
+    while (fscanf(file, "%[^;];%[^;];%d;%f\n", wine.name, wine.type, &wine.year, &wine.price) != EOF) {
+        if (strcmp(wine.name, name) != 0) {
+            fprintf(tempFile, "%s;%s;%d;%.2f\n", wine.name, wine.type, wine.year, wine.price);
+        } else {
+            found = 1;
+        }
+    }
+    fclose(file);
+    fclose(tempFile);
+    remove(FILE_NAME);
+    rename("temp.txt", FILE_NAME);
+    if (found) {
+        printf("Da xoa ruou %s khoi danh sach.\n", name);
+    } else {
+        printf("Khong tim thay ruou %s trong danh sach.\n", name);
+    }
+}
+
+int main() {
     int choice;
-    printf("\n============= Chuong trinh quan ly ruou ==================");
-    printf("\n| 1. Them thong tin loai ruou");
-    printf("\n| 2. In ra tat ca loai ruou");
-    printf("\n| 3. Tim kiem loai ruou");
-    printf("\n| 4. Cap nhat thong tin loai ruou");
-    printf("\n| 5. Xoa loai ruou");
-    printf("\n| 6. Thoat chuong trinh");
-    printf("\n=============================================\n");
-    printf("\nNhap lua chon cua ban: ");
-    do {
-        choice = checkNumb();
-        if (choice == 0)
-            printf("Lua chon khong hop le! Vui long nhap lai: ");
-    } while (choice == 0);
-    return choice;
-}
+    struct Wine wine;
+    char wineName[MAX_NAME_LENGTH];
 
-int getUpChoice() {
-    int choices;
-    printf("\nChon phan ban muon cap nhat\n");
-    printf(">>Bam 1 - De cap nhat ten loai ruou\n");
-    printf(">>Bam 2 - De cap nhat so luong loai ruou\n");
-    printf(">>Bam 3 - Thoat khoi chuong trinh cap nhat thong tin loai ruou'\n");
-    printf("\nNhap lua chon cua ban: ");
-    do {
-        choices = checkNumb();
-        if (choices == 0)
-            printf("Lua chon khong hop le! Vui long nhap lai: ");
-    } while (choices == 0);
-    return choices;
-}
+    while (1) {
+        printf("\nChuong trinh quan ly ruou\n");
+        printf("1. Them ruou\n");
+        printf("2. Hien thi tat ca cac loai ruou\n");
+        printf("3. Tim kiem ruou\n");
+        printf("4. Xoa ruou\n");
+        printf("5. Thoat\n");
+        printf("Nhap lua chon cua ban: ");
+        scanf("%d", &choice);
 
-int checkNumb() {
-    int num;
-    char term;
-    scanf("%d%c", &num, &term);
-    fflush(stdin);
-    if(term != '\n')
-        return 0;
-    else
-        return num;
-}
-
-int checkChar(char s[]) {
-    int length = strlen(s);
-    int check, space = 0, enter = 0;
-    for (int i = 0; i <= length; i++)
-        if (s[i] == ' ')
-            space++;
-    if ((length == 1) && (s[length] == '\0'))
-        enter = 1;
-    if (space == length || enter == 1)
-        return check = 0;
-    else
-        return check = 1;
-}
-
-char* lTrim(char s[]) {
-    int i = 0;
-    while (s[i] == ' ') i++;
-    if (i > 0) strcpy(&s[0], &s[i]);
-    return s;
-}
-
-char* rTrim(char s[]) {
-    int i = strlen(s)-1;
-    while (s[i] == ' ') i--;
-    s[i+1] = '\0';
-    return s;
-}
-
-char* trim(char s[]) {
-    rTrim(lTrim(s));
-    char *ptr = strstr(s, "  ");
-    while (ptr != NULL) {
-        strcpy(ptr, ptr+1);
-        ptr = strstr(s, "  ");
+        switch (choice) {
+            case 1:
+                printf("Nhap ten ruou: ");
+                scanf(" %[^\n]s", wine.name);
+                printf("Nhap loai ruou: ");
+                scanf(" %[^\n]s", wine.type);
+                printf("Nhap nam: ");
+                scanf("%d", &wine.year);
+                printf("Nhap gia: ");
+                scanf("%f", &wine.price);
+                addWineToFile(wine);
+                break;
+            case 2:
+                displayAllWines();
+                break;
+            case 3:
+                printf("Nhap ten ruou can tim: ");
+                scanf(" %[^\n]s", wineName);
+                searchWine(wineName);
+                break;
+            case 4:
+                printf("Nhap ten ruou can xoa: ");
+                scanf(" %[^\n]s", wineName);
+                deleteWine(wineName);
+                break;
+            case 5:
+                printf("Thoat khoi chuong trinh.\n");
+                exit(0);
+            default:
+                printf("Lua chon khong hop le. Vui long chon lai.\n");
+        }
     }
-    return s;
-}
 
-char* nameStr (char s[]) {
-    trim(s);
-    strlwr(s);
-    int L = strlen(s);
-    for (int i = 0; i < L; i++)
-        if (i == 0 || (i > 0 && s[i-1] == ' '))
-            s[i] = toupper(s[i]);
-    return s;
+    return 0;
 }
-
